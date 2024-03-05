@@ -68,15 +68,17 @@ Some of the variables clearly should be factors. Change all of the variables to 
 ```{r factor_conversions}
 churn$Geography <- as.factor(churn$Geography)
 churn$Gender <- as.factor(churn$Gender)
+churn$HasCrCard <- as.factor(churn$HasCrCard)
+churn$IsActiveMember <- as.factor(churn$IsActiveMember)
+churn$Exited <- as.factor(churn$Exited)
 ```
 
-> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. 
+> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. I also decided to conver `HasCrCard`, `IsActiveMember`, and `Exited` since these are binary variables which are categorical and make more sense as Factors.
 
 ## Step 3 - Partition into training and test sets
 
 We will use the [caret](https://topepo.github.io/caret/) package to do the partitioning of our data into training and test dataframes. Just run this chunk to create training and test datasets. This way we'll
-all be working with the same datasets. Notice that the test set is 20% of
-the full dataset.
+all be working with the same datasets. Notice that the test set is 20% of the full dataset.
 
 ```{r partition}
 # Simple partition into train (80%) and test (20%) set 
@@ -94,9 +96,11 @@ Find the number of customers and the percentage of customers for the two `Exited
 see that there are about 20% of the bank customers exited.
 
 ```{r target_prop_check_train}
-
+#Number of Customers
+table(churn_test$Exited)
+#Percentage of Customers
+prop.table(table(churn_test$Exited)) * 100
 ```
-
 
 ## Step 4: EDA
 
