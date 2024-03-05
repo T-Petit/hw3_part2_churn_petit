@@ -66,8 +66,11 @@ skim(churn)
 Some of the variables clearly should be factors. Change all of the variables to factors that you think should be. Include an explanation of why each of these variables should be converted to factors.
 
 ```{r factor_conversions}
-
+churn$Geography <- as.factor(churn$Geography)
+churn$Gender <- as.factor(churn$Gender)
 ```
+
+> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. 
 
 ## Step 3 - Partition into training and test sets
 
