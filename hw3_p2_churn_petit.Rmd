@@ -1,7 +1,7 @@
 ---
 title: "hw3_p2_churn"
 output: html_document
-date: "2024-03-03"
+date: "2024-03-07"
 ---
 
 ```{r setup, include=FALSE}
@@ -43,11 +43,23 @@ This Hacker Extra is worth 10% of the total number of points in the assignment.
 Read the `churn.csv` file from the `data` subfolder into a dataframe named `churn`.
 
 ```{r read_churn}
-# ??? <- ???
+churn <- read.csv("./data/churn.csv")
 ```
 
 Use `str`, `summary`, and `skim` to get a sense of the data. 
 The binary target variable is `Exited` where 1 indicates that the customer left the bank (they "churned"). You'll notice that some of the fields are numeric and some are character data. You might also notice that there are fewer variables in our churn dataset than in the original Kaggle versions.
+
+```{r churn_str}
+str(churn)
+```
+
+```{r churn_summary}
+summary(churn)
+```
+
+```{r churn_skim}
+skim(churn)
+```
 
 ## Step 2: Factor conversions
 
