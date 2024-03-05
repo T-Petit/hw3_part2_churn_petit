@@ -73,7 +73,7 @@ churn$IsActiveMember <- as.factor(churn$IsActiveMember)
 churn$Exited <- as.factor(churn$Exited)
 ```
 
-> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. I also decided to conver `HasCrCard`, `IsActiveMember`, and `Exited` since these are binary variables which are categorical and make more sense as Factors.
+> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. I also decided to conver `HasCrCard`, `IsActiveMember`, and `Exited` since these are binary variables which are categorical and make more sense as Factors since measures such as mean don't make sense for these variables whereas counts make sense.
 
 ## Step 3 - Partition into training and test sets
 
