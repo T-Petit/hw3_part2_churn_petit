@@ -104,9 +104,96 @@ prop.table(table(churn_test$Exited)) * 100
 
 ## Step 4: EDA
 
-Do some EDA to try to uncover some relationships that may end up being
-useful in building a predictive model for `Exited`. You learned
-things in HW2 which should be useful here. You should **ONLY** use `churn_train` for your EDA. You should explore all of the variables.
+Do some EDA to try to uncover some relationships that may end up being useful in building a predictive model for `Exited`. You learned things in HW2 which should be useful here. You should **ONLY** use `churn_train` for your EDA. You should explore all of the variables.
+
+```{r}
+summary(churn_train)
+```
+> Now that the binary variables are declared as Factors instead of Integers, we get a count of each when we run the summary function. Here we can see that most of the customers reside in France, are male, and have a credit card. We also can see that only half of the members are active. Finally, the majority of customers have not churned. 
+
+```{r Salary_by_CreditScore}
+ggplot(data = churn_train) +
+  geom_point(aes(x = EstimatedSalary, y = CreditScore, colour = Exited))
+```
+> No clear relationship between `CreditScore` and `EstimatedSalary` or between these and the `Exited` variable. 
+
+```{r boxplot_EstimatedSalary}
+ggplot(data = churn_train) +
+  geom_boxplot((aes(x = Exited, y = EstimatedSalary, colour = Exited)))
+```
+
+```{r}
+ggplot(data = churn_train) +
+  geom_boxplot((aes(x = Exited, y = Balance, colour = Exited)))
+```
+> It appears that customers that churn have a much higher balance than customers that don't.
+
+```{r boxplot_CreditScore}
+ggplot(data = churn_train) +
+  geom_boxplot((aes(x = Exited, y = CreditScore, colour = Exited)))
+```
+> Credit score doesn't seem to have a significant impact on whether or not the customer exited.
+
+```{r boxplot_Tenure}
+ggplot(data = churn_train) +
+  geom_boxplot((aes(x = Exited, y = Tenure, colour = Exited)))
+```
+> Tenure also doesn't seem to have much of an affect on whether or not the customer exited.
+
+```{r boxplot_Age}
+ggplot(data = churn_train) +
+  geom_boxplot((aes(x = Exited, y = Age, colour = Exited)))
+```
+
+> This boxplot reveals that on average, older customers churn more than younger customers.
+
+```{r histograms}
+ggplot(churn_train) + geom_histogram(aes(x = CreditScore))
+ggplot(churn_train) + geom_histogram(aes(x = Age))
+ggplot(churn_train) + geom_histogram(aes(x = Balance))
+ggplot(churn_train) + geom_histogram(aes(x = EstimatedSalary))
+```
+> `CreditScore` is slightly left skewed with the majority of scores falling between 550 and 750. `Age` is right skewed with most customers being in their 30s and 40s. `Balance` has the majority at 0 with the rest normally distributed around 125,000. `EstimatedSalary` is slightly left skewed. 
+
+```{r bar_Geography}
+ggplot(churn_train) + geom_bar(aes(x = Geography, fill = Exited)) +
+  ggtitle("Number of Customers by Geography") +
+  xlab("Geography") +
+  ylab("Number of Customers")
+```
+> Most customers reside in France (15,000). About 5,000 customers reside in Germany & Spain. No clear relationship between `Geogrpahy` and `Exited`.
+
+```{r bar_Gender}
+ggplot(churn_train) + geom_bar(aes(x = Gender, fill = Exited)) +
+  ggtitle("Number of Customers by Gender") +
+  xlab("Gender") +
+  ylab("Number of Customers")
+```
+> There are about 30,000 more male customers than Female customers. Although there are more male customers, more female customers have churned. 
+
+```{r bar_NumOfProducts}
+ggplot(churn_train) + geom_bar(aes(x = NumOfProducts, fill = Exited)) +
+  ggtitle("Number of Customers by Number of Products") +
+  xlab("Number of Products") +
+  ylab("Number of Customers")
+```
+> This bar chart reveals that most customers have 1 or 2 accounts; however, customers with 1 account have a much higher chance of churning. Additionally, it appears that a lot of customers with 3 products also churned.
+
+```{r bar_HasCrCard}
+ggplot(churn_train) + geom_bar(aes(x = HasCrCard, fill = Exited)) +
+  ggtitle("Number of Customers by Credit Card") +
+  xlab("Has Credit Card") +
+  ylab("Number of Customers")
+```
+> A significantly larger number of customers have a credit card than not. It also seems that the proportion of customers who churned is comparable between those that have and do not have credit cards. 
+
+```{r bar_IsActiveMember}
+ggplot(churn_train) + geom_bar(aes(x = IsActiveMember, fill = Exited)) +
+  ggtitle("Number of Customers by Activity") +
+  xlab("Active (1) vs. Not Active (0)") +
+  ylab("Number of Customers")
+```
+> The number of customers that are active versus not active are about the same; however, as expected, the members who are not active have a higher rate of exiting. 
 
 
 ## Step 5 - Building and evaluation of predictive classification models
