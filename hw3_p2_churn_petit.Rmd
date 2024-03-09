@@ -205,7 +205,7 @@ as our metric but we might want to consider other metrics.
 **QUESTION** Why might overall prediction accuracy not be the most appropriate metric to consider? What other
 metrics might be important and why?
 
-> PUT YOUR ANSWER HERE
+> Accuracy is not the most appropriate metric because it only considers the proportion of cases classified correctly. So, if the data is heavily imbalanced (say a 90/10 split), you could easily just classify all cases as the majority group and have a a high accuracy (90% in the case of a 90/10 split). It is better to use this metric along with other metrics such as sensitivity and specificity. These measures give the proportion of 1s classified as 1s and proportion of 0s classified as 0s respectively. This way, if the data is imbalanced and everything is just being classified as a 0, the specificity and accuracy would be high but the sensitivity would be 0%.
 
 ### Fit a null model
 
@@ -230,9 +230,12 @@ cm_test_null
 **QUESTION** A few questions:
 
 * Are you surprised that the performance of the null model is almost identical on test and train? Why or why not?
+
+> I am not surprised that the performance was so similar on both the test and training sets because we used the caret package to partition the data and this package maintains similar proportional values for `Exited` for each partition. Since we are just classifying all of the cases as 0, metrics such as accuracy, sensitivity, and specificity just depend on the split of 0s and 1s and since both partitions should have a similar split, these metrics should be very similar.
+
 * Explain the sensitivity and specificity values. 
 
-> PUT ANSWER HERE
+> Sensitivity is 0% on both sets because sensitivity measures the proportion of 1's correctly classified as a 1. Since all of the cases are classified as 0, no observations are correctly classified as 1, resulting in a 0% sensitity. Specificity is 100% on both sets because it measures the proportion of 0's correctly classified as a 0. Since, all the cases are classified as a 0, all of the 0 observations would be correctly classifed.
 
 So, as we begin fitting more complicated models, remember that we need to
 outperform the null model to make it worth it to use more complicated models.
@@ -270,42 +273,61 @@ without typing out all the variable names.
 
 ```{r lr1_train}
 # Fit model to training data
-# model_lr1 <- glm(??? ~ ???, 
-#                 data=???, family=???(link="???"))
+model_lr1 <- glm(Exited ~ .,
+                data=churn_train, family=binomial(link="logit"))
 
-## Convert fitted model values to fitted classes. Use 0.5 as the
-#  threshold for classifying a case as a 1.
+# Convert fitted model values to fitted classes. Use 0.5 as the threshold for classifying a case as a 1.
+class_train_lr1 <- as.factor((model_lr1$fitted.values > 0.5) * 1)
 
-# class_train_lr1 <- as.factor(???)
-                          
-# cm_train_lr1 <- confusionMatrix(???, ???, positive="1")
-# cm_train_lr1
+cm_train_lr1 <- confusionMatrix(class_train_lr1, churn_train$Exited, positive="1")
+cm_train_lr1
 ```
 
 Now, let's predict on test data.
 
 ```{r lr1_test}
+# Make predictions on test data
+pred_lr1 <- predict(model_lr1, newdata = churn_test, type = "response")
 
-# pred_lr1 <- predict(???, newdata = ???, type = "???")
+# Convert predicted values to fitted classes. Use 0.5 as the threshold for classifying a case as a 1.
+class_test_lr1 <- as.factor((pred_lr1 > 0.5) * 1)
 
-# class_test_lr1 <- as.factor(???)
-                          
-# cm_test_lr1 <- confusionMatrix(???, ???, positive="1")
-# cm_test_lr1
-
+cm_test_lr1 <- confusionMatrix(class_test_lr1, churn_test$Exited, positive="1")
+cm_test_lr1
 ```
 
 **QUESTION** How did accuracy, sensitivity and specificity change when predicting on test data instead of the training data?
 
-> PUT ANSWER HERE
+> Accuracy went from 83.63% on the training set to 83.2% on the test set. A slight decrease is expected in performance metrics on the test set so this was expected. An 83% accuracy on both sets is pretty good. However, sensitivity was quite poor with a 38.3% on the training set and a 37.5% on the test set. Specificity was excellent with about a 95% on both the training and test sets. Since there were no dramatic decreases in performance on the test sets, overfitting is not a concern. Overall, the model is good at predicting 0's but not at predicting 1's. 
 
 Now change the threshold from 0.5 to 0.4 and create a new model using this new threshold. How does the sensitivity and specificity change as compared to our first logistic regression model? Explain why this happens?
 
 ```{r increase_sensitivity}
+# Fit model to training data
+model_lr2 <- glm(Exited ~ .,
+                data=churn_train, family=binomial(link="logit"))
+
+# Convert fitted model values to fitted classes. Use 0.4 as the threshold for classifying a case as a 1.
+class_train_lr2 <- as.factor((model_lr2$fitted.values > 0.4) * 1)
+
+# Create confusion matrix on training data
+cm_train_lr2 <- confusionMatrix(class_train_lr2, churn_train$Exited, positive="1")
+cm_train_lr2
+
+
+# Make predictions on test data
+pred_lr2 <- predict(model_lr2, newdata = churn_test, type = "response")
+
+# Convert predicted values to fitted classes. Use 0.4 as the threshold for classifying a case as a 1.
+class_test_lr2 <- as.factor((pred_lr2 > 0.4) * 1)
+
+# Create confusion matrix on test data
+cm_test_lr2 <- confusionMatrix(class_test_lr2, churn_test$Exited, positive="1")
+cm_test_lr2
 
 ```
 
-> PUT ANSWER HERE
+> Changing the threshold to 0.4 resulted in nearly the same accuracy on both sets (roughly 85%). The main change is seen in sensitivty and specificity. Sensitivity improved from around 38% when using a 0.5 threshold to about 50% when using a 0.4 threshold. Specificity, however, decreased from about 95% to around 92%. This increase in sensitivity was expected because in order to maximize sensitivity, one should lower the threshold. This is because more observations are classified as 1's since the probability only needs to be greater than 0.4 instead of 0.5.
 
 
 ### Fit simple decision tree model
