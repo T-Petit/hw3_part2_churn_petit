@@ -29,6 +29,7 @@ library(caret)   # Many aspects of predictive modeling
 library(skimr)  # An automated EDA tool 
 library(rpart) # Used to build decision trees
 library(rpart.plot) # Plotting decision trees
+library(randomForest) # Create random forest model
 ```
 **MAJOR (10%) HACKER EXTRA** Version control
 
@@ -329,7 +330,7 @@ cm_test_lr2
 
 ```
 
-> Changing the threshold to 0.4 resulted in nearly the same accuracy on both sets (roughly 85%). The main change is seen in sensitivty and specificity. Sensitivity improved from around 38% when using a 0.5 threshold to about 50% when using a 0.4 threshold. Specificity, however, decreased from about 95% to around 92%. This increase in sensitivity was expected because in order to maximize sensitivity, one should lower the threshold. This is because more observations are classified as 1's since the probability only needs to be greater than 0.4 instead of 0.5.
+> Changing the threshold to 0.4 resulted in nearly the same accuracy on both sets (roughly 83%). The main change is seen in sensitivty and specificity. Sensitivity improved from around 38% when using a 0.5 threshold to about 50% when using a 0.4 threshold. Specificity, however, decreased from about 95% to around 92%. This increase in sensitivity was expected because in order to maximize sensitivity, one should lower the threshold. This is because more observations are classified as 1's since the probability only needs to be greater than 0.4 instead of 0.5.
 
 
 ### Fit simple decision tree model
@@ -341,8 +342,7 @@ model_tree1 <- rpart(Exited ~ ., data=churn_train)
 
 class_train_tree1 <- predict(model_tree1, type="class")
 
-cm_train_tree1 <- confusionMatrix(
-class_train_tree1, churn_train$Exited, positive="1")
+cm_train_tree1 <- confusionMatrix(class_train_tree1, churn_train$Exited, positive="1")
 
 cm_train_tree1
 ```
@@ -369,7 +369,7 @@ cm_test_tree1
 
 **QUESTION** How does the performance of the decision tree compare to your logistic regression model? 
 
-> The accuracy on the training dataset is 85.65% compared to 85.26% on the test set indicating both models are pretty accurate. Sensitivity is 45.4% on the training set and 43.6% on the test set indicating the model does a poor job predicting 1's on both sets. Although the sensitivity went down slightly on the test data set, overfitting isn't a concern as a little decrease in performance is expected on the test data. Specificity is 96.2% on both the training and test sets indicating the model does an excellent job classifying observations as 0's on both data sets. Overall, like the logistic regression model, the simple decision tree is good at predicting 0's but not at predicting 1's. 
+> The accuracy is similar on both the training and test sets for both the logistic regression model (83%) and the decision tree model (85%). Both models have good accuracy. Sensitivity is 45.4% on the training set and 43.6% on the test set for the decision tree. The logistic model had around a 38% accuracy when using a 0.5 threshold and around 50% when using a 0.4 threshold. So, the logistic model with a 0.4 threshold was best at predicting 1's. For the decision tree model, specificity is 96.2% on both sets indicating the model does an excellent job at classifying obserations as 0's. The logistic regression model had a specificity of around 95% with a 0.5 threshold and a 92% when using a 0.4 threshold. Overall, both models are good at predicting 0's but not at predicting 1's. The best model at predicting 1's is the logisitc regression model with a 0.4 threshold. 
 
 
 ## Fit random forest model
@@ -377,24 +377,72 @@ cm_test_tree1
 Finally, fit a random forest model.
 
 ```{r rf1_train}
+model_rf1 <- randomForest(Exited ~ .,
+                          data = churn_train,
+                          mtry = 4, #rougly 1/3 of variables used
+                          importance = TRUE,
+                          na.action = na.omit)
 
+class_train_rf1 <- predict(model_rf1, type="class")
+
+cm_train_rf1 <- confusionMatrix(class_train_rf1, churn_train$Exited, positive="1")
+
+cm_train_rf1
 ```
 
 Now, let's predict on test data.
 
 ```{r rf1_test}
+pred_rf1 <- predict(model_rf1, newdata = churn_test, type = "class")
 
+cm_test_rf1 <- confusionMatrix(pred_rf1, churn_test$Exited, positive="1")
 
+cm_test_rf1
 ```
-
 
 **QUESTION** Summarize the performance of all three of your models (logistic, tree, random forest)? Is their evidence of overfitting in any of these model and what is your evidence for your answer? Add code chunks as needed.
 
-> PUT ANSWER HERE
+```{r model_comparison}
+# Logistic Regression (0.5 threshold) Metrics
+sprintf("LR1 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_lr1$overall['Accuracy'], cm_test_lr1$overall['Accuracy'])
+sprintf("LR1 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_lr1$byClass['Sensitivity'], cm_test_lr1$byClass['Sensitivity'])
+sprintf("LR1 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_lr1$byClass['Specificity'], cm_test_lr1$byClass['Specificity'])
+
+# Logistic Regression (0.4 threshold) Metrics
+sprintf("LR2 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_lr2$overall['Accuracy'], cm_test_lr2$overall['Accuracy'])
+sprintf("LR2 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_lr2$byClass['Sensitivity'], cm_test_lr2$byClass['Sensitivity'])
+sprintf("LR2 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_lr2$byClass['Specificity'], cm_test_lr2$byClass['Specificity'])
+
+# Decision Tree Metrics
+sprintf("Tree1 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_tree1$overall['Accuracy'], cm_test_tree1$overall['Accuracy'])
+sprintf("Tree1 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_tree1$byClass['Sensitivity'], cm_test_tree1$byClass['Sensitivity'])
+sprintf("Tree1 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_tree1$byClass['Specificity'], cm_test_tree1$byClass['Specificity'])
+
+# Random Forest Metrics
+sprintf("RF1 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$overall['Accuracy'], cm_test_rf1$overall['Accuracy'])
+sprintf("RF1 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$byClass['Sensitivity'], cm_test_rf1$byClass['Sensitivity'])
+sprintf("RF1 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$byClass['Specificity'], cm_test_rf1$byClass['Specificity'])
+```
+
+
+> All three models have very similar accuracy ranging from rougly 83% to 86% with the Random Forest model being the most accurate. Sensitivity ranged from 0.376 on the test set of LR1 to 0.546 on the Random Forest model. Overall, all the models performed rather poorly at predicting 1's according to sensitivity. Specificity ranged from around 91% to about 96% indicating all the models were good at predicting 0's. Overall, the best model was the random forest model as it had comparable accuracy and specificity to the other models but had the best sensitivity. Additionally, overfitting is not a concern as all the models had similar performance on both the training and test sets with some only having a slight decrease on the test set, which is expected. 
 
 
 **QUESTION** If you had to pick one to use in an actual financial environment, which model would you use and why? As a manager in charge of retention, what model performance metrics are you most interested in? What are the basic tradeoffs you see in terms of the initiatives you might undertake in response to such a model? For example, if you were really interested in reducing the number of customers exiting, maybe there are some things you might do to incent high risk (of exiting) customers to stay. Discuss.
 
+> I would use the random forest model because it had a high accuracy (~86%) and high specificity (~95%) like the other models, but it also had the highest sensitivity (54.6% on the training and 53.6% on the test set). Although this sensitivity isn't great, it was the highest out of the four models. As shown from my analysis, the metrics I am most interested in is accuracy, sensitivity, and specificity. In this case, I am most interested in increasing sensitivity without severly compromising the models accuracy and specificity as sensitivity reflects the models ability to predict the cusomters who will exit the bank. As a manager of retention, being able to identify customers who may leave is important. Having a model that can identify customers at risk of leaving would allow me to implement incentive plans for these high risk customers. The incentives could include things like increased interest rates on their savings accounts, lowering interest rates on their credit cards, or just by reaching out and creating a personal connection with them.
 
 **HACKER EXTRA**
 
