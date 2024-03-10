@@ -27,6 +27,8 @@ library(ggplot2) # Plotting, of course
 library(corrplot) # Correlation plots
 library(caret)   # Many aspects of predictive modeling
 library(skimr)  # An automated EDA tool 
+library(rpart) # Used to build decision trees
+library(rpart.plot) # Plotting decision trees
 ```
 **MAJOR (10%) HACKER EXTRA** Version control
 
@@ -332,43 +334,43 @@ cm_test_lr2
 
 ### Fit simple decision tree model
 
-Now create a simple decision tree model to predict `Exited`. Again,
-use all the variables.
+Now create a simple decision tree model to predict `Exited`. Again, use all the variables.
 
 ```{r tree1_train}
-# model_tree1 <- ???(b_fetal_health ~ ???, data=???)
+model_tree1 <- rpart(Exited ~ ., data=churn_train)
 
-# class_train_tree1 <- predict(???, type="???")
+class_train_tree1 <- predict(model_tree1, type="class")
 
-# cm_train_tree1 <- confusionMatrix(???, ???, positive="1")
-# cm_train_tree1
+cm_train_tree1 <- confusionMatrix(
+class_train_tree1, churn_train$Exited, positive="1")
+
+cm_train_tree1
 ```
 
 Create a plot of your decision tree.
 
 ```{r decision_tree_plot}
-
+rpart.plot(model_tree1)
 ```
 
 Explain the bottom left node of your tree. What conditions have to be true for a case to end up being classified by that node? What do those three numbers in the node mean? What does the color of the node mean?
 
-> PUT ANSWER HERE
+> The left node would be true if age is less than 43 and the number of products is greater than or equal to 2 and less than 3. The first number in the node is the predicted class (either a 0 or a 1). The second number is the predicted probility of an observation in the node being a 1. The last number is the percentage of the total observations that are in the node. So for example, the bottom left node is classified as a 0, with a 0.04 probability of being a 1, and contains 43% of the data. The color of the node is blue for a 0 classification and green for a 1 classification. The more intense the color, the higher the purity. So, the bottom left node is a much more intense blue because it has a higher purity (only 0.04 probability of being a 1). However the first node on the right after the root node is much paler because there is a probability of 0.48 that a case is a 1, resulting in a lower purity. 
 
 Now, let's predict on test data.
 
 ```{r tree1_test}
+pred_tree1 <- predict(model_tree1, newdata = churn_test, type = "class")
 
-# pred_tree1 <- predict(???, newdata = ???, type = "???")
+cm_test_tree1 <- confusionMatrix(pred_tree1, churn_test$Exited, positive="1")
 
-# cm_test_tree1 <- confusionMatrix(???, ???, positive="1")
-# cm_test_tree1
-
+cm_test_tree1
 ```
 
-**QUESTION** How does the performance of the decision tree compare to your
-logistic regression model? 
+**QUESTION** How does the performance of the decision tree compare to your logistic regression model? 
 
-> PUT ANSWER HERE
+> The accuracy on the training dataset is 85.65% compared to 85.26% on the test set indicating both models are pretty accurate. Sensitivity is 45.4% on the training set and 43.6% on the test set indicating the model does a poor job predicting 1's on both sets. Although the sensitivity went down slightly on the test data set, overfitting isn't a concern as a little decrease in performance is expected on the test data. Specificity is 96.2% on both the training and test sets indicating the model does an excellent job classifying observations as 0's on both data sets. Overall, like the logistic regression model, the simple decision tree is good at predicting 0's but not at predicting 1's. 
+
 
 ## Fit random forest model
 
