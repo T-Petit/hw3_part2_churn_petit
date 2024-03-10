@@ -1,7 +1,7 @@
 ---
 title: "hw3_p2_churn"
 output: html_document
-date: "2024-03-07"
+date: "2024-03-10"
 ---
 
 ```{r setup, include=FALSE}
@@ -34,6 +34,8 @@ library(randomForest) # Create random forest model
 **MAJOR (10%) HACKER EXTRA** Version control
 
 Create a new R Project for this assignment. Put the project under version control with git. Create a private GitHub repository for this project. Use git and GitHub as you go to do commits periodically and push them to your remote repository. After you have completed the assignment and pushed your last commit to your GitHub repo, add me as a Collaborator (my GitHub username is misken) so that I can see your repo.
+
+> Added misken as a collaborator. Link to repository: https://github.com/T-Petit/hw3_part2_churn_petit.git
 
 I cover use of git and GitHub with R Studio in this module on our course web page:
 
@@ -76,7 +78,7 @@ churn$IsActiveMember <- as.factor(churn$IsActiveMember)
 churn$Exited <- as.factor(churn$Exited)
 ```
 
-> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. I also decided to conver `HasCrCard`, `IsActiveMember`, and `Exited` since these are binary variables which are categorical and make more sense as Factors since measures such as mean don't make sense for these variables whereas counts make sense.
+> I decided to convert both `Geography` and `Gender` into factors because these to variables make more sense as factors than characters. `Gender` has two distinct categories and `Geography` has three distinct categories and categorical data makes more sense as factors than as character data. I also decided to convert `HasCrCard`, `IsActiveMember`, and `Exited` since these are binary variables which are categorical and make more sense as Factors since measures such as mean don't make sense for these variables whereas counts make sense.
 
 ## Step 3 - Partition into training and test sets
 
@@ -100,9 +102,9 @@ see that there are about 20% of the bank customers exited.
 
 ```{r target_prop_check_train}
 #Number of Customers
-table(churn_test$Exited)
+table(churn_train$Exited)
 #Percentage of Customers
-prop.table(table(churn_test$Exited)) * 100
+prop.table(table(churn_train$Exited)) * 100
 ```
 
 ## Step 4: EDA
@@ -118,6 +120,7 @@ summary(churn_train)
 ggplot(data = churn_train) +
   geom_point(aes(x = EstimatedSalary, y = CreditScore, colour = Exited))
 ```
+
 > No clear relationship between `CreditScore` and `EstimatedSalary` or between these and the `Exited` variable. 
 
 ```{r boxplot_EstimatedSalary}
@@ -125,22 +128,27 @@ ggplot(data = churn_train) +
   geom_boxplot((aes(x = Exited, y = EstimatedSalary, colour = Exited)))
 ```
 
+> Estimated Salary doesn't seem to impact whether or not a customer will Exit. 
+
 ```{r}
 ggplot(data = churn_train) +
   geom_boxplot((aes(x = Exited, y = Balance, colour = Exited)))
 ```
+
 > It appears that customers that churn have a much higher balance than customers that don't.
 
 ```{r boxplot_CreditScore}
 ggplot(data = churn_train) +
   geom_boxplot((aes(x = Exited, y = CreditScore, colour = Exited)))
 ```
+
 > Credit score doesn't seem to have a significant impact on whether or not the customer exited.
 
 ```{r boxplot_Tenure}
 ggplot(data = churn_train) +
   geom_boxplot((aes(x = Exited, y = Tenure, colour = Exited)))
 ```
+
 > Tenure also doesn't seem to have much of an affect on whether or not the customer exited.
 
 ```{r boxplot_Age}
@@ -156,6 +164,7 @@ ggplot(churn_train) + geom_histogram(aes(x = Age))
 ggplot(churn_train) + geom_histogram(aes(x = Balance))
 ggplot(churn_train) + geom_histogram(aes(x = EstimatedSalary))
 ```
+
 > `CreditScore` is slightly left skewed with the majority of scores falling between 550 and 750. `Age` is right skewed with most customers being in their 30s and 40s. `Balance` has the majority at 0 with the rest normally distributed around 125,000. `EstimatedSalary` is slightly left skewed. 
 
 ```{r bar_Geography}
@@ -164,6 +173,7 @@ ggplot(churn_train) + geom_bar(aes(x = Geography, fill = Exited)) +
   xlab("Geography") +
   ylab("Number of Customers")
 ```
+
 > Most customers reside in France (15,000). About 5,000 customers reside in Germany & Spain. No clear relationship between `Geogrpahy` and `Exited`.
 
 ```{r bar_Gender}
@@ -172,6 +182,7 @@ ggplot(churn_train) + geom_bar(aes(x = Gender, fill = Exited)) +
   xlab("Gender") +
   ylab("Number of Customers")
 ```
+
 > There are about 30,000 more male customers than Female customers. Although there are more male customers, more female customers have churned. 
 
 ```{r bar_NumOfProducts}
@@ -180,6 +191,7 @@ ggplot(churn_train) + geom_bar(aes(x = NumOfProducts, fill = Exited)) +
   xlab("Number of Products") +
   ylab("Number of Customers")
 ```
+
 > This bar chart reveals that most customers have 1 or 2 accounts; however, customers with 1 account have a much higher chance of churning. Additionally, it appears that a lot of customers with 3 products also churned.
 
 ```{r bar_HasCrCard}
@@ -188,6 +200,7 @@ ggplot(churn_train) + geom_bar(aes(x = HasCrCard, fill = Exited)) +
   xlab("Has Credit Card") +
   ylab("Number of Customers")
 ```
+
 > A significantly larger number of customers have a credit card than not. It also seems that the proportion of customers who churned is comparable between those that have and do not have credit cards. 
 
 ```{r bar_IsActiveMember}
@@ -196,6 +209,7 @@ ggplot(churn_train) + geom_bar(aes(x = IsActiveMember, fill = Exited)) +
   xlab("Active (1) vs. Not Active (0)") +
   ylab("Number of Customers")
 ```
+
 > The number of customers that are active versus not active are about the same; however, as expected, the members who are not active have a higher rate of exiting. 
 
 
@@ -436,7 +450,6 @@ sprintf("RF1 Specificity: Fit = %.3f Pred = %.3f",
         cm_train_rf1$byClass['Specificity'], cm_test_rf1$byClass['Specificity'])
 ```
 
-
 > All three models have very similar accuracy ranging from rougly 83% to 86% with the Random Forest model being the most accurate. Sensitivity ranged from 0.376 on the test set of LR1 to 0.546 on the Random Forest model. Overall, all the models performed rather poorly at predicting 1's according to sensitivity. Specificity ranged from around 91% to about 96% indicating all the models were good at predicting 0's. Overall, the best model was the random forest model as it had comparable accuracy and specificity to the other models but had the best sensitivity. Additionally, overfitting is not a concern as all the models had similar performance on both the training and test sets with some only having a slight decrease on the test set, which is expected. 
 
 
@@ -446,9 +459,70 @@ sprintf("RF1 Specificity: Fit = %.3f Pred = %.3f",
 
 **HACKER EXTRA**
 
-Create a variable importance plot for your random forest to try to get a sense of which variables are most important in predicting customers likely to churn. Build another random forest using only the top 5 or so variables
-suggested by the importance plot. How does the performance of this reduced model compare to the original model?
+Create a variable importance plot for your random forest to try to get a sense of which variables are most important in predicting customers likely to churn. Build another random forest using only the top 5 or so variables suggested by the importance plot. How does the performance of this reduced model compare to the original model?
 
 ```{r importance}
+# Dataframe based on importance 
+df_imp <- as.data.frame(model_rf1$importance) %>% 
+  arrange(desc(MeanDecreaseGini))
 
+# Row names are variables, convert to a column
+df_imp <- tibble::rownames_to_column(df_imp, "variable")
+
+# Plot importance
+ggplot(data = df_imp) +
+  geom_bar(aes(x = reorder(variable, MeanDecreaseAccuracy), 
+               y = MeanDecreaseAccuracy), 
+               stat = "identity") +
+  coord_flip()
 ```
+
+Fit to training set: 
+
+```{r rf2_train}
+model_rf2 <- randomForest(Exited ~ NumOfProducts + Age + Balance + IsActiveMember + Geography,
+                          data = churn_train,
+                          mtry = 2, #rougly 1/3 of variables used
+                          importance = TRUE,
+                          na.action = na.omit)
+
+class_train_rf2 <- predict(model_rf2, type="class")
+
+cm_train_rf2 <- confusionMatrix(class_train_rf2, churn_train$Exited, positive="1")
+
+cm_train_rf2
+```
+
+Predict on test set:
+
+```{r rf2_test}
+pred_rf2 <- predict(model_rf2, newdata = churn_test, type = "class")
+
+cm_test_rf2 <- confusionMatrix(pred_rf2, churn_test$Exited, positive="1")
+
+cm_test_rf2
+```
+
+Compare Random Forest Models:
+
+```{r rf_comparison}
+# RF1 Model
+sprintf("RF1 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$overall['Accuracy'], cm_test_rf1$overall['Accuracy'])
+sprintf("RF1 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$byClass['Sensitivity'], cm_test_rf1$byClass['Sensitivity'])
+sprintf("RF1 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_rf1$byClass['Specificity'], cm_test_rf1$byClass['Specificity'])
+
+# RF2 Model
+sprintf("RF2 Accuracy: Fit = %.3f Pred = %.3f",
+        cm_train_rf2$overall['Accuracy'], cm_test_rf2$overall['Accuracy'])
+sprintf("RF2 Sensitivity: Fit = %.3f Pred = %.3f",
+        cm_train_rf2$byClass['Sensitivity'], cm_test_rf2$byClass['Sensitivity'])
+sprintf("RF2 Specificity: Fit = %.3f Pred = %.3f",
+        cm_train_rf2$byClass['Specificity'], cm_test_rf2$byClass['Specificity'])
+```
+
+**QUESTION** How does the performance of this reduced model compare to the original model?
+
+> The accuracy is nearly identical for RF1 and this reduced model (aka RF2). The sensitivity is slightly worse on RF2 at about 50% on both sets while RF1 had a sensitivity of about 54% on both sets. Specificity was rougly the same around 95% for RF1 and 96% for RF2. Overall, the performance is about the same on both models.
